@@ -1,0 +1,13 @@
+
+
+Setting jam di Aplikasi Restoranku
+.env
+Tambahkan
+---
+'timezone' => env('APP_TIMEZONE', 'Asia/Makassar'),
+---
+config/app.php
+Tambahkan
+---
+APP_TIMEZONE=Asia/Makassar
+---
