@@ -68,11 +68,13 @@
                     })
                     .then(response => response.json())
                     .then(data => {
-                        alert(data.message);
+                        console.log(data);
+                        alert('Menu berhasil ditambahkan ke keranjang!');
                     })
                     .catch(error => {
                         console.error('Error:', error);
+                        alert('Gagal menambahkan ke keranjang!');
                     });
                 }
             </script>
-@endsection
+        @endsection
