@@ -68,12 +68,9 @@
                     })
                     .then(response => response.json())
                     .then(data => {
-                        console.log(data);
-                        alert('Menu berhasil ditambahkan ke keranjang!');
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Gagal menambahkan ke keranjang!');
+                        if (data.status === 'success') {
+                            window.location.href = "{{ route('cart') }}"; // GET /cart
+                        }
                     });
                 }
             </script>
