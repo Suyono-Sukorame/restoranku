@@ -58,6 +58,8 @@
         @section('script')
             <script>
                 function addToCart(menuId) {
+                    // console.log('Adding menu ID:', menuId); // Debug di console
+
                     fetch("{{ route('cart.add') }}", {
                         method: 'POST',
                         headers: {
@@ -66,11 +68,38 @@
                         },
                         body: JSON.stringify({ id: menuId })
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            window.location.href = "{{ route('cart') }}"; // GET /cart
+                    .then(async response => {
+                        console.log('Response status:', response.status);
+
+                        let data;
+                        try {
+                            data = await response.json();
+                        } catch (e) {
+                            alert('⚠️ Gagal membaca response dari server. Pastikan backend mengembalikan JSON.');
+                            throw e;
                         }
+
+                        if (!response.ok) {
+                            alert('❌ Gagal menambah ke keranjang: ' + (data.message || 'Terjadi kesalahan.'));
+                            throw new Error(data.message || 'Terjadi kesalahan.');
+                        }
+
+                        return data;
+                    })
+                    .then(data => {
+                        console.log('Response data:', data);
+
+                        if (data.status === 'success') {
+                            alert('✅ Berhasil menambah ke keranjang!');
+                            // Bisa redirect langsung
+                            window.location.href = "{{ route('cart') }}";
+                        } else {
+                            alert('❌ Gagal menambah ke keranjang: ' + (data.message || 'Terjadi kesalahan.'));
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Fetch error:', err);
+                        alert('⚠️ Terjadi kesalahan saat menambah ke keranjang. Silakan coba lagi.');
                     });
                 }
             </script>
