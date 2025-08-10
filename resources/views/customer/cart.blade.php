@@ -1,3 +1,7 @@
+@php
+use Illuminate\Support\Str;
+@endphp
+
 @extends('customer.layouts.master')
 
 @section('content')
@@ -29,16 +33,16 @@
                         <tr>
                             <th scope="row">
                                 <div class="d-flex align-items-center">
-                                    @if(!empty($item['image']))
-                                        <img src="{{ asset('img_item_upload/' . $item['image']) }}" 
+                                    @if(Str::startsWith($item['image'], ['http://', 'https://']))
+                                        <img src="{{ $item['image'] }}" 
                                             class="img-fluid me-5 rounded-circle" 
                                             style="width: 80px; height: 80px;" 
                                             alt="{{ $item['name'] }}">
                                     @else
-                                        <img src="{{ asset('images/no-image.png') }}" 
+                                        <img src="{{ asset('img_item_upload/' . $item['image']) }}" 
                                             class="img-fluid me-5 rounded-circle" 
                                             style="width: 80px; height: 80px;" 
-                                            alt="No Image">
+                                            alt="{{ $item['name'] }}">
                                     @endif
                                 </div>
                             </th>
@@ -49,11 +53,24 @@
                                 <p class="mb-0 mt-4">Rp {{ number_format($item['price'], 0, ',', '.') }}</p>
                             </td>
                             <td>
-                                <form action="{{ route('cart.update') }}" method="POST" class="d-flex align-items-center mt-4" style="width: 120px;">
+                                <form action="{{ route('cart.update') }}" method="POST" class="d-flex align-items-center">
                                     @csrf
-                                    <input type="hidden" name="id" value="{{ $id }}">
-                                    <input type="number" name="qty" value="{{ $item['qty'] }}" min="1" class="form-control form-control-sm w-50 me-2">
-                                    <button type="submit" class="btn btn-sm btn-success">Update</button>
+                                    <input type="hidden" name="id" value="{{ $item['id'] }}">
+                                    
+                                    <div class="input-group quantity" style="width: 100px;">
+                                        <div class="input-group-btn">
+                                            <button type="button" class="btn btn-sm btn-minus rounded-circle bg-light border">
+                                                <i class="fa fa-minus"></i>
+                                            </button>
+                                        </div>
+                                        <input type="text" name="qty" value="{{ $item['qty'] }}" 
+                                            class="form-control form-control-sm text-center border-0" readonly>
+                                        <div class="input-group-btn">
+                                            <button type="button" class="btn btn-sm btn-plus rounded-circle bg-light border">
+                                                <i class="fa fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </form>
                             </td>
                             <td>

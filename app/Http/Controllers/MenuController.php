@@ -39,17 +39,30 @@ class MenuController extends Controller
             ]);
         }
 
+        $imagePath = $menu->img;
+
+        if (empty($imagePath)) {
+            $imagePath = 'https://via.placeholder.com/150?text=No+Image';
+        }
+
+        if (!filter_var($imagePath, FILTER_VALIDATE_URL)) {
+            $fullPath = public_path('img_item_upload/' . $imagePath);
+            if (!file_exists($fullPath)) {
+                $imagePath = 'https://via.placeholder.com/150?text=No+Image';
+            }
+        }
+
         $cart = Session::get('cart', []);
 
         if (isset($cart[$menuId])) {
             $cart[$menuId]['qty'] += 1;
         } else {
             $cart[$menuId] = [
-                'id' => $menu->id,
-                'name' => $menu->name,
+                'id'    => $menu->id,
+                'name'  => $menu->name,
                 'price' => $menu->price,
-                'image' => $menu->img,
-                'qty' => 1
+                'image' => $imagePath,
+                'qty'   => 1
             ];
         }
 
@@ -103,4 +116,11 @@ class MenuController extends Controller
         }
         return redirect()->route('cart');
     }
+
+    public function clearCart()
+    {
+        Session::forget('cart');
+        return redirect()->route('cart')->with('success', 'Keranjang berhasil dikosongkan');
+    }
+
 }
