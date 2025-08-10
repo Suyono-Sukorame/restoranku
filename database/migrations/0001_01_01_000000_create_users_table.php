@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('username')->unique();
+            $table->string('username')->nullable();
             $table->string('password')->nullable();
             $table->string('fullname');
-            $table->string('email')->unique();
+            $table->string('email')->nullable();
             $table->string('phone');
-            $table->foreignId('role_id')->constrained('roles'); // otomatis unsignedBigInteger dan foreign key
+            $table->foreignId('role_id')->constrained('roles');
             $table->softDeletes();
             $table->timestamps();
         });

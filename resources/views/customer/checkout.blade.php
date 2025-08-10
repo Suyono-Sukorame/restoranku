@@ -17,7 +17,6 @@
 <div class="container-fluid py-5">
     <div class="container py-5">
         <h1 class="mb-4">Detail Pembayaran</h1>
-        {{-- <form id="chackout-form" {{ route('checkout.store') }}" method="POST"> --}}
             <form id="checkout-form" action="{{ route('checkout.store') }}" method="POST">
             @csrf
             <div class="row g-5">
@@ -133,11 +132,11 @@
                                     <h5 class="mb-0 ps-4 me-4">Metode Pembayaran</h5>
                                     <div class="mb-3 pe-5">
                                         <div class="form-check">
-                                            <input type="radio" class="form-check-input bg-primary border-0" id="qris" name="payment_method" value="qris">
+                                            <input type="radio" name="payment_method" value="qris">
                                             <label class="form-check-label" for="qris">QRIS</label>
                                         </div>
                                         <div class="form-check">
-                                            <input type="radio" class="form-check-input bg-primary border-0" id="cash" name="payment" value="tunai">
+                                            <input type="radio" name="payment_method" value="tunai">
                                             <label class="form-check-label" for="cash">Tunai</label>
                                         </div>
                                     </div>
@@ -146,8 +145,6 @@
 
                             <div class="d-flex justify-content-end">
                                 <button type="submit" id="pay-button" class="btn border-secondary py-3 text-uppercase text-primary">Konfirmasi Pesanan</button>
-
-                                {{-- <button type="button" class="btn border-secondary py-3 text-uppercase text-primary">Konfirmasi Pesanan</button>  --}}
                             </div>
                             
                         </div>

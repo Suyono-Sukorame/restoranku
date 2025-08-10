@@ -29,7 +29,7 @@ class MenuController extends Controller
     public function cart()
     {
         $cart = Session::get('cart', []);
-        $tableNumber = Session::get('table_number');  // Ambil table_number dari session
+        $tableNumber = Session::get('table_number');
         return view('customer.cart', compact('cart', 'tableNumber'));
     }
 
@@ -168,18 +168,23 @@ class MenuController extends Controller
                 'id' => $item['id'],
                 'price' => (int) $item['price'] + ($item['price'] * 0.1),
                 'quantity' => $item['qty'],
-                'name' => substr($item['name'], 0, 50), // Limit name to 50 characters
+                'name' => substr($item['name'], 0, 50), 
             ];
         }
-
-        $user = User::firstOrCreate([
-            'name' => $request->input('fullname'),
-            'phone' => $request->input('phone'),
-            'role_id' => 4
-        ]);
+        $user = User::firstOrCreate(
+            [
+                'fullname' => $request->input('fullname'),
+                'phone'    => $request->input('phone'),
+                'role_id'  => 4
+            ],
+            [
+                'username' => strtolower(str_replace(' ', '', $request->input('fullname'))) . rand(100, 999),
+                'email'    => strtolower(str_replace(' ', '', $request->input('fullname'))) . rand(100, 999) . '@example.com'
+            ]
+        );
 
         $order = Order::create([
-            'order_cde' => 'ORD-' . $tableNumber . '-' . time(),
+            'order_code' => 'ORD-' . $tableNumber . '-' . time(),
             'user_id' => $user->id,
             'subtotal' => $totalAmount,
             'tax' => $totalAmount * 0.1, // Assuming 10%
