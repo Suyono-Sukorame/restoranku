@@ -4,6 +4,15 @@ use Illuminate\Support\Str;
 
 @extends('customer.layouts.master')
 
+<!-- Single Page Header start -->
+<div class="container-fluid page-header py-5">
+    <h1 class="text-center text-white display-6">Belanja</h1>
+    <ol class="breadcrumb justify-content-center mb-0">
+        <li class="breadcrumb-item active text-primary">Silahkan periksa pesanan Anda</li>
+    </ol>
+</div>
+<!-- Single Page Header End -->
+
 @section('content')
 <div class="container-fluid py-5">
     <div class="container py-5">
@@ -104,6 +113,10 @@ use Illuminate\Support\Str;
             $tax = $subtotalAll * 0.1; // contoh pajak 10%
             $total = $subtotalAll + $tax;
         @endphp
+
+        <div class="d-flax justify-content-end">
+            <a href="{{ route('cart.clear') }}" class="btn btn-danger" onclick="return confirm('Apakah anda yakin ingin mengosongkan keranjang?')">Kosongkan Keranjang</a>
+        </div>
 
         <div class="row g-4 justify-content-end mt-1">
             <div class="col-8"></div>

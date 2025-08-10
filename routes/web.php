@@ -11,5 +11,5 @@ Route::post('/cart/add', [MenuController::class, 'addToCart'])->name('cart.add')
 Route::post('/cart/update', [MenuController::class, 'updateCart'])->name('cart.update');
 Route::delete('/cart/remove/{id}', [MenuController::class, 'removeCart'])->name('cart.remove');
 Route::get('/cart/clear', [MenuController::class, 'clearCart'])->name('cart.clear');
-
-Route::get('/checkout', fn() => view('customer.cart'))->name('checkout');
+Route::get('/checkout', [MenuController::class, 'checkout'])->name('checkout');
+Route::post('/checkout/store', [MenuController::class, 'storeOrder'])->name('checkout.store');

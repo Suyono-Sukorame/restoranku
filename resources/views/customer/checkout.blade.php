@@ -1,4 +1,6 @@
-@extends('layouts.master')
+
+@extends('customer.layouts.master')
+{{-- @extends('layouts.master') --}}
 
 @section('title', 'Checkout')
 
@@ -11,46 +13,41 @@
     </ol>
 </div>
 
+<!-- Checkout Page Start -->
 <div class="container-fluid py-5">
     <div class="container py-5">
         <h1 class="mb-4">Detail Pembayaran</h1>
-
-        @if ($errors->any())
-            @foreach ($errors->all() as $error)
-                <div class="alert alert-danger">{{$error}}</div>
-            @endforeach
-        @endif
-
-        <form id="checkout-form" action="{{ route('checkout.store') }}" method="POST">
+        {{-- <form id="chackout-form" {{ route('checkout.store') }}" method="POST"> --}}
+            <form id="checkout-form" action="{{ route('checkout.store') }}" method="POST">
             @csrf
             <div class="row g-5">
                 <div class="col-md-12 col-lg-6 col-xl-6">
                     <div class="row">
-                        <div class="col-md-12 col-lg-4">
+                        <div class="col-md-12 col-lg-6">
                             <div class="form-item w-100">
                                 <label class="form-label my-3">Nama Lengkap<sup>*</sup></label>
-                                <input type="text" class="form-control" name="fullname" required>
+                                <input type="text" name="fullname" class="form-control" placeholder="Masukan Nama" required>
                             </div>
                         </div>
                         <div class="col-md-12 col-lg-4">
                             <div class="form-item w-100">
                                 <label class="form-label my-3">Nomor WhatsApp<sup>*</sup></label>
-                                <input type="text" class="form-control" name="phone" required>
+                                <input type="text" name="phone" class="form-control" placeholder="Masukan Whatsapp" required>
                             </div>
                         </div>
                         <div class="col-md-12 col-lg-4">
                             <div class="form-item w-100">
-                                <label class="form-label my-3">Nomor Meja<sup>*</sup></label>
-                                <input type="text" class="form-control" value="{{ $tableNumber ?? 'Tidak ada nomor meja' }}" disabled>
+                                <label class="form-label my-3">Nomor Meja</label>
+                                <input type="text" name="table_number" class="form-control" value="{{ $tableNumber ?? '' }}" readonly>
                             </div>
                         </div>
-                    </div>
+                    </div>   
                     <br>
                     <div class="row">
                         <div class="col-md-12 col-lg-12">
                             <div class="form-item">
-                                <textarea name="notes" class="form-control" spellcheck="false" cols="30" rows="5" placeholder="Catatan pesanan (Opsional)"></textarea>
-                            </div>
+                                <textarea name="text" class="form-control" spellcheck="false" cols="30" rows="5" placeholder="Catatan pesanan (Opsional)"></textarea>
+                            </div>   
                         </div>
                     </div>
                     <div class="row">
@@ -69,25 +66,36 @@
                                 </thead>
                                 <tbody>
                                     @php
-                                        $subtotal = 0;
+                                        $subTotal = 0;
                                     @endphp
-                                    @foreach (session('cart') as $item)
+                                    @foreach (session()->get('cart') as $item)
                                     @php
                                         $itemTotal = $item['price'] * $item['qty'];
-                                        $subtotal += $itemTotal;
+                                        $subTotal += $itemTotal;
                                     @endphp
                                     <tr>
                                         <th scope="row">
                                             <div class="d-flex align-items-center mt-2">
-                                                <img src="{{ asset('img_item_upload/' . $item['image']) }}" class="img-fluid rounded-circle" style="width: 100px; height: 90px; object-fit: cover;" alt="{{ $item['name'] }}" onerror="this.onerror=null;this.src='{{ $item['image'] }}';">
+                                                @if(Str::startsWith($item['image'], ['http://', 'https://']))
+                                                    <img src="{{ $item['image'] }}" 
+                                                        class="img-fluid me-5 rounded-circle" 
+                                                        style="width: 80px; height: 80px;" 
+                                                        alt="{{ $item['name'] }}">
+                                                @else
+                                                    <img src="{{ asset('img_item_upload/' . $item['image']) }}" 
+                                                        class="img-fluid me-5 rounded-circle" 
+                                                        style="width: 80px; height: 80px;" 
+                                                        alt="{{ $item['name'] }}">
+                                                @endif
                                             </div>
                                         </th>
-                                        <td class="py-5">{{ $item['name'] }}</td>
-                                        <td class="py-5">{{ number_format($item['price'], 2, ',', '.') }}</td>
+                                        <td class="py-5">{{ $item['name']}}</td>
+                                        <td class="py-5">{{ number_format($item['price'], 0, ',', '.') }}</td>
                                         <td class="py-5">{{ $item['qty'] }}</td>
-                                        <td class="py-5">Rp{{ number_format($item['price'] * $item['qty'], 0, ',', '.') }}</td>
+                                        <td class="py-5">{{ number_format($itemTotal, 0, ',', '.') }}</td>
                                     </tr>
                                     @endforeach
+
                                 </tbody>
                             </table>
                         </div>
@@ -95,8 +103,8 @@
                 </div>
 
                 @php
-                    $tax = $subtotal * 0.1;
-                    $total = $subtotal + $tax;
+                    $tax = $subTotal * 0.1; // 10% tax
+                    $total = $subTotal + $tax;
                 @endphp
 
                 <div class="col-md-12 col-lg-6 col-xl-6">
@@ -107,12 +115,12 @@
                                     <h3 class="display-6 mb-4">Total <span class="fw-normal">Pesanan</span></h3>
                                     <div class="d-flex justify-content-between mb-4">
                                         <h5 class="mb-0 me-4">Subtotal</h5>
-                                        <p class="mb-0">Rp{{ number_format($subtotal, 0, ',', '.') }}</p>
+                                        <p class="mb-0">{{ number_format($subTotal, 0, ',', '.') }}</p>
                                     </div>
                                     <div class="d-flex justify-content-between">
-                                        <p class="mb-0 me-4">PPN (10%)</p>
+                                        <p class="mb-0 me-4">Pajak (10%)</p>
                                         <div class="">
-                                            <p class="mb-0">Rp{{ number_format($tax, 0, ',', '.') }}</p>
+                                            <p class="mb-0">{{ number_format($tax, 0, ',', '.') }}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -123,13 +131,13 @@
 
                                 <div class="py-4 mb-4 d-flex justify-content-between">
                                     <h5 class="mb-0 ps-4 me-4">Metode Pembayaran</h5>
-                                    <div class="mb-0 pe-4 fs-5 fw-bold">
+                                    <div class="mb-3 pe-5">
                                         <div class="form-check">
-                                            <input type="radio" class="form-check-input" id="qris" name="payment_method" value="qris">
+                                            <input type="radio" class="form-check-input bg-primary border-0" id="qris" name="payment_method" value="qris">
                                             <label class="form-check-label" for="qris">QRIS</label>
                                         </div>
                                         <div class="form-check">
-                                            <input type="radio" class="form-check-input" id="cash" name="payment_method" value="tunai">
+                                            <input type="radio" class="form-check-input bg-primary border-0" id="cash" name="payment" value="tunai">
                                             <label class="form-check-label" for="cash">Tunai</label>
                                         </div>
                                     </div>
@@ -137,9 +145,11 @@
                             </div>
 
                             <div class="d-flex justify-content-end">
-                                <button type="button" id="pay-button" class="btn border-secondary py-3 text-uppercase text-primary">Konfirmasi Pesanan</button>
-                            </div>
+                                <button type="submit" id="pay-button" class="btn border-secondary py-3 text-uppercase text-primary">Konfirmasi Pesanan</button>
 
+                                {{-- <button type="button" class="btn border-secondary py-3 text-uppercase text-primary">Konfirmasi Pesanan</button>  --}}
+                            </div>
+                            
                         </div>
                     </div>
                 </div>
@@ -147,51 +157,7 @@
         </form>
     </div>
 </div>
-
-{{-- <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
-<script>
-    document.getElementById('pay-button').addEventListener('click', function () {
-        let form = document.getElementById('checkout-form');
-        let paymentMethod = document.querySelector('input[name="payment_method"]:checked');
-
-        if (!paymentMethod) {
-            alert("Pilih metode pembayaran terlebih dahulu!");
-            return;
-        }
-
-        if (paymentMethod.value === 'tunai') {
-            form.submit();
-        } else {
-            fetch("{{ route('checkout.store') }}", {
-                    method: "POST",
-                    body: formData,
-                    headers: {
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.snap_token) {
-                        snap.pay(data.snap_token, {
-                            onSuccess: function(result){
-                                window.location.href = "/checkout/success/" + data.order_id;
-                            },
-                            onPending: function(result){
-                                alert("Menunggu pembayaran selesai");
-                            },
-                            onError: function(result){
-                                alert("Pembayaran gagal");
-                            }
-                        });
-                    } else {
-                        alert("Terjadi kesalahan, coba lagi.");
-                    }
-                })
-                .catch(error => console.error("Error:", error));
-        }
-    });
-</script> --}}
-
+<!-- Checkout Page End -->
 
 <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
 <script>
@@ -238,11 +204,10 @@
                 })
                 .catch(error => console.error("Error:", error));
             } else {
-                form.submit(); // Langsung submit kalau tunai
+                form.submit();
             }
         });
     });
 </script>
-
 
 @endsection
