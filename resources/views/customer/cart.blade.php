@@ -56,17 +56,21 @@ use Illuminate\Support\Str;
                                 <form action="{{ route('cart.update') }}" method="POST" class="d-flex align-items-center">
                                     @csrf
                                     <input type="hidden" name="id" value="{{ $item['id'] }}">
-                                    
                                     <div class="input-group quantity" style="width: 100px;">
                                         <div class="input-group-btn">
-                                            <button type="button" class="btn btn-sm btn-minus rounded-circle bg-light border">
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-minus rounded-circle bg-light border"
+                                                    onclick="updateQuantity('{{ $item['id'] }}', -1)">
                                                 <i class="fa fa-minus"></i>
                                             </button>
                                         </div>
-                                        <input type="text" name="qty" value="{{ $item['qty'] }}" 
+                                        <input type="text" id="qty-{{ $item['id'] }}" 
+                                            value="{{ $item['qty'] }}" 
                                             class="form-control form-control-sm text-center border-0" readonly>
                                         <div class="input-group-btn">
-                                            <button type="button" class="btn btn-sm btn-plus rounded-circle bg-light border">
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-plus rounded-circle bg-light border"
+                                                    onclick="updateQuantity('{{ $item['id'] }}', 1)">
                                                 <i class="fa fa-plus"></i>
                                             </button>
                                         </div>
@@ -144,7 +148,7 @@ use Illuminate\Support\Str;
         var newQty = currentQty + change;
 
         if (newQty <= 0) {
-            if (confirm("Apakah Anda yakin ingin menghapus item ini?")) {
+            if (confirm("Hapus item ini dari keranjang?")) {
                 removeItemFromCart(itemId);
             }
             return;
@@ -167,14 +171,15 @@ use Illuminate\Support\Str;
                 qtyInput.value = newQty;
                 location.reload();
             } else {
-                alert('Gagal memperbarui keranjang');
+                alert('Gagal update jumlah item');
             }
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error(error);
             alert('Terjadi kesalahan');
         });
     }
+
 
     function removeItemFromCart(itemId) {
         fetch("{{ url('/cart/remove') }}/" + itemId, {

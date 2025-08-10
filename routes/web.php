@@ -3,9 +3,7 @@
 use App\Http\Controllers\MenuController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return redirect()->route('menu'); ;
-});
+Route::get('/', fn() => redirect()->route('menu'));
 
 Route::get('/menu', [MenuController::class, 'index'])->name('menu');
 Route::get('/cart', [MenuController::class, 'cart'])->name('cart');
@@ -14,8 +12,4 @@ Route::post('/cart/update', [MenuController::class, 'updateCart'])->name('cart.u
 Route::delete('/cart/remove/{id}', [MenuController::class, 'removeCart'])->name('cart.remove');
 Route::get('/cart/clear', [MenuController::class, 'clearCart'])->name('cart.clear');
 
-Route::get('/checkout', function (){
-    return view('customer.cart');
-})->name('checkout');
-
-
+Route::get('/checkout', fn() => view('customer.cart'))->name('checkout');

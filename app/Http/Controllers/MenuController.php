@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use App\Models\Item;
-use Illuminate\Support\Facades\Log;
 
 class MenuController extends Controller
 {
@@ -16,7 +15,9 @@ class MenuController extends Controller
             Session::put('table_number', $tableNumber);
         }
 
-        $items = Item::where('is_active', 1)->orderBy('name', 'asc')->get();
+        $items = Item::where('is_active', 1)
+                    ->orderBy('name', 'asc')
+                    ->get();
 
         return view('customer.menu', compact('items', 'tableNumber'));
     }
@@ -44,11 +45,10 @@ class MenuController extends Controller
         if (empty($imagePath)) {
             $imagePath = 'https://via.placeholder.com/150?text=No+Image';
         }
-
         if (!filter_var($imagePath, FILTER_VALIDATE_URL)) {
             $fullPath = public_path('img_item_upload/' . $imagePath);
             if (!file_exists($fullPath)) {
-                $imagePath = 'https://via.placeholder.com/150?text=No+Image';
+                $imagePath = 'https://source.unsplash.com/150x150/?food';
             }
         }
 
@@ -74,7 +74,6 @@ class MenuController extends Controller
             'cart' => $cart
         ]);
     }
-
 
     public function updateCart(Request $request)
     {
@@ -120,7 +119,7 @@ class MenuController extends Controller
     public function clearCart()
     {
         Session::forget('cart');
-        return redirect()->route('cart')->with('success', 'Keranjang berhasil dikosongkan');
+        return redirect()->route('cart')
+                         ->with('success', 'Keranjang berhasil dikosongkan');
     }
-
 }
