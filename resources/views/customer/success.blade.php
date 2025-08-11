@@ -14,11 +14,11 @@
                 </p>
             @elseif ($order->payment_method == 'qris' && $order->status == 'pending')
                 <p class="text-center">
-                    <span class="badge bg-success">Menunggu konfirmasi pembayaran</span>
+                    <span class="badge bg-primary">Menunggu konfirmasi pembayaran</span>
                 </p>
             @else
                 <p class="text-center">
-                    <span class="badge bg-success">Pembayaran berhasil, pesanan segera diproses</span>
+                    <span class="badge bg-primary">Pembayaran berhasil, pesanan segera diproses</span>
                 </p>
             @endif
 
