@@ -142,35 +142,27 @@ class MenuController extends Controller
     {
         $cart = Session::get('cart');
         $tableNumber = Session::get('table_number');
+        
         if (empty($cart)) {
             return redirect()->route('cart')->with('error', 'Keranjang masih kosong');
         }
+
         $validator = Validator::make($request->all(), [
             'fullname' => 'required|string|max:255',
             'phone' => 'required|string|max:15',            
         ]);
+
         if ($validator->fails()) {
-            return redirect()->route('checkout')
-                             ->withErrors($validator);
+            return redirect()->route('checkout')->withErrors($validator);
         }
 
-        $total = 0;
-        foreach ($cart as $item) {
-            $total += $item['price'] * $item['qty'];
-        }
-
+        // Hitung total
         $totalAmount = 0;
-        $itemDetails = [];
         foreach ($cart as $item) {
-            $totalAmount += $item['qty'] * $item['price'];
-
-            $itemDetails[] = [
-                'id' => $item['id'],
-                'price' => (int) $item['price'] + ($item['price'] * 0.1),
-                'quantity' => $item['qty'],
-                'name' => substr($item['name'], 0, 50), 
-            ];
+            $totalAmount += $item['price'] * $item['qty'];
         }
+
+        // Buat user
         $user = User::firstOrCreate(
             [
                 'fullname' => $request->input('fullname'),
@@ -183,18 +175,20 @@ class MenuController extends Controller
             ]
         );
 
+        // Buat order
         $order = Order::create([
             'order_code' => 'ORD-' . $tableNumber . '-' . time(),
             'user_id' => $user->id,
             'subtotal' => $totalAmount,
-            'tax' => $totalAmount * 0.1, // Assuming 10%
-            'grand_total' => $totalAmount + (0.1 * $totalAmount),
+            'tax' => $totalAmount * 0.1,
+            'grand_total' => $totalAmount + ($totalAmount * 0.1),
             'status' => 'pending',
             'table_number' => $tableNumber,
             'payment_method' => $request->payment_method,
             'notes' => $request->notes,
         ]);
 
+        // Buat order items
         foreach ($cart as $item) {
             OrderItem::create([
                 'order_id' => $order->id,
@@ -202,13 +196,28 @@ class MenuController extends Controller
                 'quantity' => $item['qty'],
                 'price' => $item['price'] * $item['qty'],
                 'tax' => $item['price'] * $item['qty'] * 0.1,
-                'total_price' => ($item['price'] * $item['qty']) + (0.1 * $item[ 'price'] * $item['qty']),
+                'total_price' => ($item['price'] * $item['qty']) + (0.1 * $item['price'] * $item['qty']),
             ]);
         }
 
         Session::forget('cart');
 
-        return redirect()->route('menu')
-                         ->with('success', 'Pesanan berhasil dibuat');
+        // Langsung redirect ke halaman success tanpa Midtrans
+        return redirect()->route('checkout.success', ['orderId' => $order->order_code])
+                        ->with('success', 'Pesanan berhasil dibuat.');
+    }
+    public function checkoutSuccess($orderId)
+    {
+        $order = Order::where('order_code', $orderId)->first();
+        if (!$order) {
+            return redirect()->route('menu')->with('error', 'Pesanan tidak ditemukan');
+        }
+        $orderItems = OrderItem::where('order_id', $order->id)->get();
+        if ($order->payment_method == 'qris' && $order->status != 'settlement') {
+            $order->status = 'settlement';
+            $order->save();
+        }        
+        // Ubah ini:
+        return view('customer.success', compact('order', 'orderItems'));
     }
 }
