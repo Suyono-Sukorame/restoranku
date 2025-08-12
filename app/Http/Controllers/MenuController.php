@@ -202,22 +202,81 @@ class MenuController extends Controller
 
         Session::forget('cart');
 
-        // Langsung redirect ke halaman success tanpa Midtrans
-        return redirect()->route('checkout.success', ['orderId' => $order->order_code])
-                        ->with('success', 'Pesanan berhasil dibuat.');
+        if ($request->payment_method == 'tunai') {
+            return redirect()->route('checkout.success', ['orderId' => $order->order_code])
+                            ->with('success', 'Pesanan berhasil dibuat. Silakan bayar di kasir.');
+        } else {
+            \Midtrans\Config::$serverKey = config('midtrans.SERVER_KEY');
+            \Midtrans\Config::$isProduction = config('midtrans.IS_PRODUCTION');
+            \Midtrans\Config::$isSanitized = true;
+            \Midtrans\Config::$is3ds = true;
+
+            // Buat array item details dari cart
+            $itemDetails = [];
+            foreach ($cart as $item) {
+                $itemDetails[] = [
+                    'id' => $item['id'],
+                    'price' => (int) $item['price'],
+                    'quantity' => $item['qty'],
+                    'name' => $item['name'],
+                ];
+            }
+            $params = [
+                'transaction_details' => [
+                    'order_id' => $order->order_code,
+                    'gross_amount' => (int) $order->grand_total,
+                ],
+                'item_details' => $itemDetails,
+                'customer_details' => [
+                    'first_name' => $user->fullname ?? 'Guest',
+                    'phone' => $user->phone,
+                ],
+                'enabled_payments' => ['qris', 'gopay', 'shopeepay'], // Tambahkan ini
+                'payment_type' => 'qris',
+                'qris' => [ // Tambahkan konfigurasi khusus QRIS
+                    'acquirer' => 'gopay' // atau 'shopeepay', 'nobu', dll
+                ]
+            ];
+
+            // $params = [
+            //         'transaction_details' => [
+            //         'order_id' => $order->order_code,
+            //         'gross_amount' => (int) $order->grand_total,
+            //     ],
+            //         'item_details' => $itemDetails,
+            //         'customer_details' => [
+            //         'first_name' => $user->fullname ?? 'Guest',
+            //         'phone' => $user->phone,
+            //     ],
+            //         'payment_type' => 'qris',
+            // ];
+
+            try {
+                $snapToken = \Midtrans\Snap::getSnapToken($params);
+                // Misal kamu pakai AJAX, return json
+                return response()->json([
+                    'status' => 'success',
+                    'snap_token' => $snapToken,
+                    'order_code' => $order->order_code,
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Gagal membuat transaksi Midtrans: ' . $e->getMessage(),
+                ]);
+            }
+        }
     }
+
     public function checkoutSuccess($orderId)
     {
         $order = Order::where('order_code', $orderId)->first();
         if (!$order) {
             return redirect()->route('menu')->with('error', 'Pesanan tidak ditemukan');
         }
+        
         $orderItems = OrderItem::where('order_id', $order->id)->get();
-        if ($order->payment_method == 'qris' && $order->status != 'settlement') {
-            $order->status = 'settlement';
-            $order->save();
-        }        
-        // Ubah ini:
+        
         return view('customer.success', compact('order', 'orderItems'));
     }
 }

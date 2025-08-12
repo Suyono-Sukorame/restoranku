@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\MenuController;
+use App\Models\Category;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => redirect()->route('menu'));
@@ -14,3 +16,6 @@ Route::get('/cart/clear', [MenuController::class, 'clearCart'])->name('cart.clea
 Route::get('/checkout', [MenuController::class, 'checkout'])->name('checkout');
 Route::post('/checkout/store', [MenuController::class, 'storeOrder'])->name('checkout.store');
 Route::get('checkout/success/{orderId}', [MenuController::class, 'checkoutSuccess'])->name('checkout.success');
+
+
+Route::resource('categories', CategoryController::class)->names('admin.categories');

@@ -45,7 +45,7 @@
                     <div class="row">
                         <div class="col-md-12 col-lg-12">
                             <div class="form-item">
-                                <textarea name="text" class="form-control" spellcheck="false" cols="30" rows="5" placeholder="Catatan pesanan (Opsional)"></textarea>
+                                <textarea name="notes" class="form-control" spellcheck="false" cols="30" rows="5" placeholder="Catatan pesanan (Opsional)"></textarea>
                             </div>   
                         </div>
                     </div>
@@ -158,21 +158,65 @@
 
 <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
 <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
         const payButton = document.getElementById("pay-button");
-        
-        payButton.addEventListener("click", function(e) {
-            // Validasi metode pembayaran terpilih
-            const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
-            
+        const form = document.querySelector("form");
+
+        payButton.addEventListener("click", function (e) {
+            e.preventDefault(); // Tambahkan ini untuk mencegah form submit default
+
+            let paymentMethod = document.querySelector('input[name="payment_method"]:checked');
+
             if (!paymentMethod) {
                 alert("Pilih metode pembayaran terlebih dahulu!");
-                e.preventDefault();
-                return false;
+                return;
             }
-            
-            // Form akan di-submit normal tanpa AJAX
-            return true;
+
+            paymentMethod = paymentMethod.value;
+            let formData = new FormData(form);
+
+            if (paymentMethod === "qris") {
+                fetch("{{ route('checkout.store') }}", {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                        "Accept": "application/json" // Tambahkan header ini
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data); // Debug log
+                    if (data.snap_token) {
+                        snap.pay(data.snap_token, {
+                            onSuccess: function(result){
+                                window.location.href = "/checkout/success/" + data.order_code;
+                            },
+                            onPending: function(result){
+                                window.location.href = "/checkout/success/" + data.order_code;
+                            },
+                            onError: function(result){
+                                console.error('Payment error:', result);
+                                alert("Pembayaran gagal: " + result.status_message);
+                            }
+                        });
+                    } else {
+                        console.error('Invalid response:', data);
+                        alert("Terjadi kesalahan: " + (data.message || 'Token tidak diterima'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("Terjadi kesalahan: " + error.message);
+                });
+            } else {
+                form.submit();
+            }
         });
     });
     // document.addEventListener("DOMContentLoaded", function () {
@@ -206,7 +250,7 @@
     //                             window.location.href = "/checkout/success/" + data.order_code;
     //                         },
     //                         onPending: function(result){
-    //                             alert("Menunggu pembayaran selesai");
+    //                             window.location.href = "/checkout/success/" + data.order_code;
     //                         },
     //                         onError: function(result){
     //                             alert("Pembayaran gagal");
