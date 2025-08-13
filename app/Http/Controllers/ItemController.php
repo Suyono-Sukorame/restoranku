@@ -115,15 +115,14 @@ class ItemController extends Controller
      */
     public function destroy($id)
     {
-        $item = Item::findOrFail($id);
+        $item = Item::withTrashed()->findOrFail($id);
 
-        // Delete image if exists
+        // hapus gambar dulu
         if ($item->img && File::exists(public_path('assets/img/' . $item->img))) {
             File::delete(public_path('assets/img/' . $item->img));
         }
 
-        $item->delete();
-
-        return redirect()->route('items.index')->with('success', 'Menu berhasil dihapus.');
+        $item->forceDelete(); // hapus permanen
+        return redirect()->route('items.index')->with('success', 'Menu berhasil dihapus permanen.');
     }
 }
