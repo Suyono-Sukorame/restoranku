@@ -17,15 +17,19 @@ class Item extends Model
         'category_id',
         'img',
         'is_active',
-        'create_at',
-        'updated_at',
     ];
-    protected $dates = ['delete_at'];
+
+    protected $dates = ['deleted_at'];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 
     public function category()
     {
         return $this->belongsTo(Category::class);
     }
+
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);

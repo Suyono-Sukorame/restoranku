@@ -11,7 +11,11 @@ class RoleController extends Controller
      */
     public function index()
     {
-        //
+        // Fetch categories from the database
+        $roles = \App\Models\Category::all();
+
+        // Return the view with categories
+        return view('admin.role.index', compact('roles'));
     }
 
     /**

@@ -22,7 +22,7 @@ Route::post('/checkout/store', [MenuController::class, 'storeOrder'])->name('che
 Route::get('checkout/success/{orderId}', [MenuController::class, 'checkoutSuccess'])->name('checkout.success');
 
 Route::get('/dashboard', function () {
-    return view('admin.dashboard'); // sesuaikan dengan view dashboard kamu
+    return view('admin.layouts.dashboard'); 
 })->name('dashboard');
 
 Route::resource('orders', OrderController::class)->names('orders');
@@ -30,12 +30,3 @@ Route::resource('items', ItemController::class)->names('items');
 Route::resource('users', UserController::class)->names('users');
 Route::resource('roles', RoleController::class)->names('roles');
 Route::resource('categories', CategoryController::class)->names('categories');
-
-
-// Route::resource('categories', CategoryController::class)->names('admin.categories');
-// Route::resource('items', CategoryController::class)->names('admin.items');
-// Route::resource('roles', CategoryController::class)->names('admin.roles');
-// Route::resource('users', CategoryController::class)->names('admin.users');
-// Route::resource('orders', CategoryController::class)->names('admin.orders');
-
-

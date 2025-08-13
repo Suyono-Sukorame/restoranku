@@ -11,7 +11,11 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
+        // Fetch categories from the database
+        $users = \App\Models\Category::all();
+
+        // Return the view with categories
+        return view('admin.user.index', compact('users'));
     }
 
     /**
