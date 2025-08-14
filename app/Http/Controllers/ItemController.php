@@ -125,4 +125,15 @@ class ItemController extends Controller
         $item->forceDelete(); // hapus permanen
         return redirect()->route('items.index')->with('success', 'Menu berhasil dihapus permanen.');
     }
+
+    public function updateStatus($order)
+    {
+        $item = Item::findOrFail($order); // $order = id item
+        $item->is_active = !$item->is_active;
+        $item->save();
+
+        return redirect()->back()->with('success', 'Status menu berhasil diubah.');
+    }
+
+
 }

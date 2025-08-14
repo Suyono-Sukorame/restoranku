@@ -94,14 +94,22 @@
                                 <a href="{{ route('items.edit', $item->id) }}" class="btn btn-warning btn-sm mb-1">
                                     <i class="bi bi-pencil"></i> Ubah
                                 </a>
-                                <form action="{{ route('items.destroy', $item->id) }}" method="POST" class="d-inline"
+                                <form action="{{ route('items.update.status', ['order' => $item->id]) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn {{ $item->is_active ? 'btn-danger' : 'btn-success' }} btn-sm mb-1">
+                                        <i class="bi {{ $item->is_active ? 'bi-x-circle' : 'bi-check-circle' }}"></i>
+                                        {{ $item->is_active ? 'Non Aktif' : 'Aktif' }}
+                                    </button>
+                                </form>
+
+                                {{-- <form action="{{ route('items.destroy', $item->id) }}" method="POST" class="d-inline"
                                     onsubmit="return confirm('Apakah anda yakin ingin menghapus menu ini?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm mb-1">
                                         <i class="bi bi-trash"></i> Hapus
                                     </button>
-                                </form>
+                                </form> --}}
                             </td>
                         </tr>
                         @endforeach

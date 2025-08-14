@@ -30,3 +30,5 @@ Route::resource('items', ItemController::class)->names('items');
 Route::resource('users', UserController::class)->names('users');
 Route::resource('roles', RoleController::class)->names('roles');
 Route::resource('categories', CategoryController::class)->names('categories');
+
+Route::post('/items/update-status/{order}', [ItemController::class, 'updateStatus'])->name('items.update.status');
