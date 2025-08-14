@@ -52,7 +52,7 @@
                         <li @class(['sidebar-item', 'active' => request()->routeIs('orders.*')])>
                             <a href="{{ route('orders.index') }}" class="sidebar-link" {{ request()->routeIs('orders.*') ? 'aria-current=page' : '' }}>
                                 <i class="bi bi-basket3"></i>
-                                <span>Kelola Pesanan</span>
+                                <span>Daftar Pesanan</span>
                             </a>
                         </li>
 

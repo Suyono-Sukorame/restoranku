@@ -219,53 +219,7 @@
             }
         });
     });
-    // document.addEventListener("DOMContentLoaded", function () {
-    //     const payButton = document.getElementById("pay-button");
-    //     const form = document.querySelector("form");
-
-    //     payButton.addEventListener("click", function () {
-    //         let paymentMethod = document.querySelector('input[name="payment_method"]:checked');
-
-    //         if (!paymentMethod) {
-    //             alert("Pilih metode pembayaran terlebih dahulu!");
-    //             return;
-    //         }
-
-    //         paymentMethod = paymentMethod.value;
-    //         let formData = new FormData(form);
-
-    //         if (paymentMethod === "qris") {
-    //             fetch("{{ route('checkout.store') }}", {
-    //                 method: "POST",
-    //                 body: formData,
-    //                 headers: {
-    //                     "X-CSRF-TOKEN": "{{ csrf_token() }}"
-    //                 }
-    //             })
-    //             .then(response => response.json())
-    //             .then(data => {
-    //                 if (data.snap_token) {
-    //                     snap.pay(data.snap_token, {
-    //                         onSuccess: function(result){
-    //                             window.location.href = "/checkout/success/" + data.order_code;
-    //                         },
-    //                         onPending: function(result){
-    //                             window.location.href = "/checkout/success/" + data.order_code;
-    //                         },
-    //                         onError: function(result){
-    //                             alert("Pembayaran gagal");
-    //                         }
-    //                     });
-    //                 } else {
-    //                     alert("Terjadi kesalahan, coba lagi.");
-    //                 }
-    //             })
-    //             .catch(error => console.error("Error:", error));
-    //         } else {
-    //             form.submit();
-    //         }
-    //     });
-    // });
+    
 </script>
 
 @endsection
