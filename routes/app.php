@@ -30,7 +30,11 @@ Route::middleware(['role:admin'])->group(function () {
 });
 
 Route::middleware(['role:admin|cashier'])->group(function () {
-    Route::post('orders/{order}', [OrderController::class, 'settlement'])->name('orders.settlement');
+    Route::post('orders/settlement/{order}', [OrderController::class, 'settlement'])->name('orders.settlement');
+});
+
+Route::middleware(['role:chef'])->group(function () {
+    Route::post('orders/cooked/{order}', [OrderController::class, 'cooked'])->name('orders.cooked');
 });
 
 Route::middleware(['role:admin|cashier|chef'])->group(function () {
@@ -39,6 +43,7 @@ Route::middleware(['role:admin|cashier|chef'])->group(function () {
     })->name('dashboard');
     Route::resource('orders', OrderController::class)->names('orders');
     Route::post('/items/update-status/{order}', [ItemController::class, 'updateStatus'])->name('items.update.status');
+    Route::post('orders/{order}/update-status', [OrderController::class, 'updateStatus'])->name('orders.update.status');
 });
     
 

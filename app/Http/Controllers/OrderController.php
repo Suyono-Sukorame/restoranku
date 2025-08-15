@@ -34,4 +34,13 @@ class OrderController extends Controller
 
         return redirect()->route('orders.index')->with('success', 'Order settled successfully.');
     }
+
+    public function cooked($id)
+    {
+        $order = Order::findOrFail($id);
+        $order->status = 'cooked';
+        $order->save();
+
+        return redirect()->route('orders.index')->with('success', 'Order marked as cooked successfully.');
+    }
 }

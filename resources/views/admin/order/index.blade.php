@@ -40,6 +40,12 @@
 
     <section class="section">
         <div class="card">
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
             <div class="card-body table-responsive">
                 <table id="table1" class="table table-striped align-middle">
                     <thead>
@@ -67,8 +73,9 @@
                             <td>{{ 'Rp' . number_format($order->tax, 0, ',', '.') }}</td>
                             <td>{{ 'Rp' . number_format($order->grand_total, 0, ',', '.') }}</td>
                             <td>
+                                <!-- Badge Status -->
                                 <span class="badge badge-status 
-                                    {{ $order->status == 'paid' ? 'bg-success' : ($order->status == 'pending' ? 'bg-warning' : 'bg-danger') }}">
+                                    {{ $order->status == 'paid' ? 'bg-success' : ($order->status == 'pending' ? 'bg-warning text-dark' : ($order->status == 'settlement' ? 'bg-primary text-white' : 'bg-danger')) }}">
                                     {{ ucfirst($order->status) }}
                                 </span>
                             </td>
@@ -76,23 +83,35 @@
                             <td>{{ $order->payment_method ?? '-' }}</td>
                             <td>{{ Str::limit($order->note, 20) ?? '-' }}</td>
                             <td>
-                                <span. class="btn btn-sm btn-primary">
-                                    <a href="{{ route('orders.show', $order->id) }}" class="btn btn-sm text-white">
+                                <!-- Tombol Lihat -->
+                                <a href="{{ route('orders.show', $order->id) }}" class="btn btn-sm btn-info text-white mb-1">
                                     <i class="bi bi-eye"></i> Lihat
-                                    </a>
-                                </span>
-                                @if (Auth::user()->role->role_name == 'admin' || Auth::user()->role->role_name == 'cashier')
-                                    @if ($order->status == 'pending' && $order->payment_method == 'tunai')
-                                        <form action="{{ route('orders.settlement', $order->id) }}" method="POST">
+                                </a>
+
+                                <!-- Untuk Admin / Cashier -->
+                                @if(in_array(Auth::user()->role->role_name, ['admin', 'cashier']))
+                                    @if($order->status == 'pending' && strtolower($order->payment_method) == 'tunai')
+                                        <form action="{{ route('orders.settlement', $order->id) }}" method="POST" class="d-inline">
                                             @csrf
-                                            <button type="submit" class="btn btn-success btn-sm">
+                                            <button type="submit" class="btn btn-sm btn-success mb-1">
                                                 <i class="bi bi-check-circle"></i> Terima Pembayaran
                                             </button>
                                         </form>
                                     @endif
                                 @endif
+
+                                <!-- Untuk Chef -->
+                                @if(Auth::user()->role->role_name == 'chef')
+                                    @if($order->status == 'settlement')
+                                        <form action="{{ route('orders.cooked', $order->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-warning text-dark mb-1">
+                                                <i class="bi bi-check-circle"></i> Pesanan Siap
+                                            </button>
+                                        </form>
+                                    @endif
+                                @endif
                             </td>
-                        </tr>
                         @endforeach
                     </tbody>
                 </table>
