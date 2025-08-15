@@ -29,8 +29,16 @@ Route::middleware(['role:admin'])->group(function () {
     Route::resource('users', UserController::class)->names('users');
 });
 
-// Orders bisa diakses admin/kasir
-Route::middleware(['role:admin|kasir'])->group(function () {
+Route::middleware(['role:admin|cashier'])->group(function () {
+    Route::post('orders/{order}', [OrderController::class, 'settlement'])->name('orders.settlement');
+});
+
+Route::middleware(['role:admin|cashier|chef'])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('admin.dashboard');
+    })->name('dashboard');
     Route::resource('orders', OrderController::class)->names('orders');
     Route::post('/items/update-status/{order}', [ItemController::class, 'updateStatus'])->name('items.update.status');
 });
+    
+

@@ -81,6 +81,16 @@
                                     <i class="bi bi-eye"></i> Lihat
                                     </a>
                                 </span>
+                                @if (Auth::user()->role->role_name == 'admin' || Auth::user()->role->role_name == 'cashier')
+                                    @if ($order->status == 'pending' && $order->payment_method == 'tunai')
+                                        <form action="{{ route('orders.settlement', $order->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm">
+                                                <i class="bi bi-check-circle"></i> Terima Pembayaran
+                                            </button>
+                                        </form>
+                                    @endif
+                                @endif
                             </td>
                         </tr>
                         @endforeach
