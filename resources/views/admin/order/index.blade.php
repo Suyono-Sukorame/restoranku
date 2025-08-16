@@ -60,7 +60,7 @@
                             <th>Meja</th>
                             <th>Metode Bayar</th>
                             <th>Catatan</th>
-                            <th>Aksi</th>
+                            <th colspan="2">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -74,7 +74,7 @@
                             <td>{{ 'Rp' . number_format($order->grand_total, 0, ',', '.') }}</td>
                             <td>
                                 <!-- Badge Status -->
-                                <span class="badge badge-status 
+                                <span class="btn btn-primary btn-sm 
                                     {{ $order->status == 'paid' ? 'bg-success' : ($order->status == 'pending' ? 'bg-warning text-dark' : ($order->status == 'settlement' ? 'bg-primary text-white' : 'bg-danger')) }}">
                                     {{ ucfirst($order->status) }}
                                 </span>
@@ -89,6 +89,8 @@
                                 </a>
 
                                 <!-- Untuk Admin / Cashier -->
+                            </td>
+                            <td>
                                 @if(in_array(Auth::user()->role->role_name, ['admin', 'cashier']))
                                     @if($order->status == 'pending' && strtolower($order->payment_method) == 'tunai')
                                         <form action="{{ route('orders.settlement', $order->id) }}" method="POST" class="d-inline">
@@ -125,3 +127,5 @@
 <script src="{{ asset('assets/admin/extensions/simple-datatables/umd/simple-datatables.js') }}"></script>
 <script src="{{ asset('assets/admin/static/js/pages/simple-datatables.js') }}"></script>
 @endsection
+
+

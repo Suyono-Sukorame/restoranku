@@ -63,13 +63,13 @@
                             </a>
                         </li>
 
+                        @if (Auth::user()->role->role_name == 'admin')
                         <li @class(['sidebar-item', 'active' => request()->routeIs('users.*')])>
                             <a href="{{ route('users.index') }}" class="sidebar-link" {{ request()->routeIs('users.*') ? 'aria-current=page' : '' }}>
                                 <i class="bi bi-people"></i>
                                 <span>Manajemen Karyawan</span>
                             </a>
                         </li>
-
                         <li @class(['sidebar-item', 'active' => request()->routeIs('roles.*')])>
                             <a href="{{ route('roles.index') }}" class="sidebar-link" {{ request()->routeIs('roles.*') ? 'aria-current=page' : '' }}>
                                 <i class="bi bi-shield-lock"></i>
@@ -83,6 +83,8 @@
                                 <span>Manajemen Kategori</span>
                             </a>
                         </li>
+                        @endif
+                        
                         <li class="sidebar-item">
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
@@ -95,6 +97,5 @@
                         </li>
                     </ul>
                 </div>
-
             </div>
         </div>
