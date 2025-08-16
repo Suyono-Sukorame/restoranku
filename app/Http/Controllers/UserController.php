@@ -23,7 +23,7 @@ class UserController extends Controller
      */
     public function create()
     {
-        $roles = Role::all(); // Ambil semua role untuk select box
+        $roles = Role::where('role_name', '!=', 'customer')->get(); 
         return view('admin.user.create', compact('roles'));
     }
 
