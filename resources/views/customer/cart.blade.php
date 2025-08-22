@@ -42,17 +42,21 @@ use Illuminate\Support\Str;
                         <tr>
                             <th scope="row">
                                 <div class="d-flex align-items-center">
-                                    @if(Str::startsWith($item['image'], ['http://', 'https://']))
-                                        <img src="{{ $item['image'] }}" 
-                                            class="img-fluid me-5 rounded-circle" 
-                                            style="width: 80px; height: 80px;" 
-                                            alt="{{ $item['name'] }}">
-                                    @else
-                                        <img src="{{ asset('img_item_upload/' . $item['image']) }}" 
-                                            class="img-fluid me-5 rounded-circle" 
-                                            style="width: 80px; height: 80px;" 
-                                            alt="{{ $item['name'] }}">
-                                    @endif
+                                    @php
+                                        $imageSrc = asset('img_item_upload/no_image.jpg');
+                                        if (isset($item['image'])) {
+                                            if (filter_var($item['image'], FILTER_VALIDATE_URL)) {
+                                                $imageSrc = $item['image'];
+                                            } elseif (file_exists(public_path('img_item_upload/' . $item['image']))) {
+                                                $imageSrc = asset('img_item_upload/' . $item['image']);
+                                            }
+                                        }
+                                    @endphp
+                                    <img src="{{ $imageSrc }}" 
+                                        class="img-fluid me-5 rounded-circle" 
+                                        style="width: 80px; height: 80px;" 
+                                        alt="{{ $item['name'] }}" 
+                                        onerror="this.src='{{ asset('img_item_upload/no_image.jpg') }}'">
                                 </div>
                             </th>
                             <td>
@@ -93,7 +97,7 @@ use Illuminate\Support\Str;
                                 <form action="{{ route('cart.remove', $id) }}" method="POST" class="mt-4">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-md rounded-circle bg-light border" onclick="return confirm('Hapus produk ini dari keranjang?')">
+                                    <button type="submit" class="btn btn-md rounded-circle bg-light border" onclick="return confirmDelete('Hapus produk ini dari keranjang?')">
                                         <i class="fa fa-times text-danger"></i>
                                     </button>
                                 </form>
@@ -114,8 +118,8 @@ use Illuminate\Support\Str;
             $total = $subtotalAll + $tax;
         @endphp
 
-        <div class="d-flax justify-content-end">
-            <a href="{{ route('cart.clear') }}" class="btn btn-danger" onclick="return confirm('Apakah anda yakin ingin mengosongkan keranjang?')">Kosongkan Keranjang</a>
+        <div class="d-flex justify-content-end">
+            <a href="{{ route('cart.clear') }}" class="btn btn-danger" onclick="return confirmDelete('Apakah anda yakin ingin mengosongkan keranjang?')">Kosongkan Keranjang</a>
         </div>
 
         <div class="row g-4 justify-content-end mt-1">
@@ -126,18 +130,18 @@ use Illuminate\Support\Str;
                         <h2 class="display-6 mb-4">Total <span class="fw-normal">Pesanan</span></h2>
                         <div class="d-flex justify-content-between mb-4">
                             <h5 class="mb-0 me-4">Subtotal</h5>
-                            <p class="mb-0">Rp {{ number_format($subtotalAll, 0, ',', '.') }}</p>
+                            <p class="mb-0" id="cart-subtotal">Rp {{ number_format($subtotalAll, 0, ',', '.') }}</p>
                         </div>
                         <div class="d-flex justify-content-between">
                             <p class="mb-0 me-4">Pajak (10%)</p>
                             <div class="">
-                                <p class="mb-0">Rp {{ number_format($tax, 0, ',', '.') }}</p>
+                                <p class="mb-0" id="cart-tax">Rp {{ number_format($tax, 0, ',', '.') }}</p>
                             </div>
                         </div>
                     </div>
                     <div class="py-4 mb-4 border-top d-flex justify-content-between">
                         <h4 class="mb-0 ps-4 me-4">Total</h4>
-                        <h5 class="mb-0 pe-4">Rp {{ number_format($total, 0, ',', '.') }}</h5>
+                        <h5 class="mb-0 pe-4" id="cart-total">Rp {{ number_format($total, 0, ',', '.') }}</h5>
                     </div>
                 </div>
                 <div class="d-flex justify-content-end">
@@ -155,6 +159,20 @@ use Illuminate\Support\Str;
 
 @section('script')
 <script>
+    function confirmDelete(message) {
+        return confirm(message);
+    }
+    
+    function showToast(message, type = 'success') {
+        // Simple toast notification
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        toast.innerHTML = `${message} <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+    
     function updateQuantity(itemId, change) {
         var qtyInput = document.getElementById('qty-' + itemId);
         var currentQty = parseInt(qtyInput.value);
@@ -182,9 +200,11 @@ use Illuminate\Support\Str;
         .then(data => {
             if (data.success === true) {
                 qtyInput.value = newQty;
-                location.reload();
+                updateCartDisplay(itemId, newQty);
+                updateCartBadge();
+                showToast('Jumlah item berhasil diperbarui', 'success');
             } else {
-                alert('Gagal update jumlah item');
+                showToast('Gagal update jumlah item', 'danger');
             }
         })
         .catch(error => {
@@ -194,6 +214,43 @@ use Illuminate\Support\Str;
     }
 
 
+    function updateCartDisplay(itemId, newQty) {
+        // Update subtotal untuk item ini
+        const row = document.querySelector(`#qty-${itemId}`).closest('tr');
+        const priceText = row.querySelector('td:nth-child(3) p').textContent;
+        const price = parseInt(priceText.replace(/[^0-9]/g, ''));
+        const newSubtotal = price * newQty;
+        
+        // Update total di row
+        row.querySelector('td:nth-child(5) p').textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(newSubtotal);
+        
+        // Recalculate grand total
+        recalculateTotal();
+    }
+    
+    function recalculateTotal() {
+        let grandSubtotal = 0;
+        document.querySelectorAll('tbody tr').forEach(row => {
+            const totalCell = row.querySelector('td:nth-child(5) p');
+            if (totalCell && totalCell.textContent.includes('Rp')) {
+                const total = parseInt(totalCell.textContent.replace(/[^0-9]/g, ''));
+                grandSubtotal += total;
+            }
+        });
+        
+        const tax = grandSubtotal * 0.1;
+        const grandTotal = grandSubtotal + tax;
+        
+        // Update display menggunakan ID
+        const subtotalElement = document.getElementById('cart-subtotal');
+        const taxElement = document.getElementById('cart-tax');
+        const totalElement = document.getElementById('cart-total');
+        
+        if (subtotalElement) subtotalElement.textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(grandSubtotal);
+        if (taxElement) taxElement.textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(tax);
+        if (totalElement) totalElement.textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(grandTotal);
+    }
+    
     function removeItemFromCart(itemId) {
         fetch("{{ url('/cart/remove') }}/" + itemId, {
             method: 'DELETE',
@@ -205,14 +262,24 @@ use Illuminate\Support\Str;
         .then(response => response.json())
         .then(data => {
             if (data.success === true) {
-                location.reload();
+                // Remove row from table
+                const row = document.querySelector(`#qty-${itemId}`).closest('tr');
+                row.remove();
+                recalculateTotal();
+                updateCartBadge();
+                showToast('Item berhasil dihapus', 'success');
+                
+                // Check if cart is empty
+                if (document.querySelectorAll('tbody tr').length === 0) {
+                    location.reload();
+                }
             } else {
-                alert('Gagal menghapus item');
+                showToast('Gagal menghapus item', 'danger');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Terjadi kesalahan saat menghapus item');
+            showToast('Terjadi kesalahan saat menghapus item', 'danger');
         });
     }
 </script>

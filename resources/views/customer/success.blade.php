@@ -40,37 +40,25 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @php
-                        $subtotal = 0;
-                    @endphp
-
                     @foreach ($orderItems as $orderItem)
-                        @php
-                            $itemTotal = $orderItem->price * $orderItem->quantity;
-                            $subtotal += $itemTotal;
-                        @endphp
                         <tr>
                             <td>{{ \Illuminate\Support\Str::limit($orderItem->item->name, 25) }} ({{ $orderItem->quantity }})</td>
-                            <td class="text-end">Rp{{ number_format($itemTotal, 0, ',', '.') }}</td>
+                            <td class="text-end">Rp{{ number_format($orderItem->price, 0, ',', '.') }}</td>
                         </tr>
                     @endforeach
                 </tbody>
                 <tfoot>
-                    @php
-                        $tax = $subtotal * 0.10; // Pajak 10%
-                        $total = $subtotal + $tax;
-                    @endphp
                     <tr>
                         <th>Subtotal</th>
-                        <th class="text-end">Rp{{ number_format($subtotal, 0, ',', '.') }}</th>
+                        <th class="text-end">Rp{{ number_format($order->subtotal, 0, ',', '.') }}</th>
                     </tr>
                     <tr>
                         <th>Pajak (10%)</th>
-                        <th class="text-end">Rp{{ number_format($tax, 0, ',', '.') }}</th>
+                        <th class="text-end">Rp{{ number_format($order->tax, 0, ',', '.') }}</th>
                     </tr>
                     <tr>
                         <th>Total</th>
-                        <th class="text-end">Rp{{ number_format($total, 0, ',', '.') }}</th>
+                        <th class="text-end">Rp{{ number_format($order->grand_total, 0, ',', '.') }}</th>
                     </tr>
                 </tfoot>
             </table>

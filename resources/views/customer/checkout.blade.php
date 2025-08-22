@@ -9,7 +9,13 @@
 <div class="container-fluid page-header py-5">
     <h1 class="text-center text-white display-6">Checkout</h1>
     <ol class="breadcrumb justify-content-center mb-0">
-        <li class="breadcrumb-item active text-primary">Silakan isi detail pemesanan anda</li>
+        <li class="breadcrumb-item active text-primary">
+            @if($tableNumber)
+                Meja {{ $tableNumber }} - Silakan isi detail pemesanan anda
+            @else
+                <span class="text-warning">⚠️ Nomor meja tidak ditemukan. Silakan scan QR code di meja Anda.</span>
+            @endif
+        </li>
     </ol>
 </div>
 
@@ -17,6 +23,19 @@
 <div class="container-fluid py-5">
     <div class="container py-5">
         <h1 class="mb-4">Detail Pembayaran</h1>
+        
+        @if(!$tableNumber)
+        <div class="alert alert-warning" role="alert">
+            <i class="fa fa-exclamation-triangle"></i>
+            <strong>Perhatian!</strong> Nomor meja tidak ditemukan. 
+            <br>Untuk memesan, silakan:
+            <ol>
+                <li>Scan QR code yang ada di meja Anda</li>
+                <li>Atau akses menu dengan URL: <code>{{ url('/menu?meja=1') }}</code> (ganti 1 dengan nomor meja)</li>
+            </ol>
+        </div>
+        @endif
+        
             <form id="checkout-form" action="{{ route('checkout.store') }}" method="POST">
             @csrf
             <div class="row g-5">
@@ -25,13 +44,21 @@
                         <div class="col-md-12 col-lg-6">
                             <div class="form-item w-100">
                                 <label class="form-label my-3">Nama Lengkap<sup>*</sup></label>
-                                <input type="text" name="fullname" class="form-control" placeholder="Masukan Nama" required>
+                                <input type="text" name="fullname" class="form-control @error('fullname') is-invalid @enderror" 
+                                       placeholder="Masukan Nama" value="{{ old('fullname') }}" required>
+                                @error('fullname')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-12 col-lg-4">
                             <div class="form-item w-100">
                                 <label class="form-label my-3">Nomor WhatsApp<sup>*</sup></label>
-                                <input type="text" name="phone" class="form-control" placeholder="Masukan Whatsapp" required>
+                                <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" 
+                                       placeholder="Masukan Whatsapp" value="{{ old('phone') }}" required>
+                                @error('phone')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-12 col-lg-4">
@@ -75,17 +102,21 @@
                                     <tr>
                                         <th scope="row">
                                             <div class="d-flex align-items-center mt-2">
-                                                @if(Str::startsWith($item['image'], ['http://', 'https://']))
-                                                    <img src="{{ $item['image'] }}" 
-                                                        class="img-fluid me-5 rounded-circle" 
-                                                        style="width: 80px; height: 80px;" 
-                                                        alt="{{ $item['name'] }}">
-                                                @else
-                                                    <img src="{{ asset('img_item_upload/' . $item['image']) }}" 
-                                                        class="img-fluid me-5 rounded-circle" 
-                                                        style="width: 80px; height: 80px;" 
-                                                        alt="{{ $item['name'] }}">
-                                                @endif
+                                                @php
+                                                    $imageSrc = asset('img_item_upload/no_image.jpg');
+                                                    if (isset($item['image'])) {
+                                                        if (filter_var($item['image'], FILTER_VALIDATE_URL)) {
+                                                            $imageSrc = $item['image'];
+                                                        } elseif (file_exists(public_path('img_item_upload/' . $item['image']))) {
+                                                            $imageSrc = asset('img_item_upload/' . $item['image']);
+                                                        }
+                                                    }
+                                                @endphp
+                                                <img src="{{ $imageSrc }}" 
+                                                    class="img-fluid me-5 rounded-circle" 
+                                                    style="width: 80px; height: 80px;" 
+                                                    alt="{{ $item['name'] }}" 
+                                                    onerror="this.src='{{ asset('img_item_upload/no_image.jpg') }}'">
                                             </div>
                                         </th>
                                         <td class="py-5">{{ $item['name']}}</td>
@@ -132,11 +163,11 @@
                                     <h5 class="mb-0 ps-4 me-4">Metode Pembayaran</h5>
                                     <div class="mb-3 pe-5">
                                         <div class="form-check">
-                                            <input type="radio" name="payment_method" value="qris">
+                                            <input type="radio" id="qris" name="payment_method" value="qris">
                                             <label class="form-check-label" for="qris">QRIS</label>
                                         </div>
                                         <div class="form-check">
-                                            <input type="radio" name="payment_method" value="tunai">
+                                            <input type="radio" id="cash" name="payment_method" value="tunai">
                                             <label class="form-check-label" for="cash">Tunai</label>
                                         </div>
                                     </div>
@@ -156,7 +187,7 @@
 </div>
 <!-- Checkout Page End -->
 
-<script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
+<script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.CLIENT_KEY') }}"></script>
 <script>
         document.addEventListener("DOMContentLoaded", function () {
         const payButton = document.getElementById("pay-button");
@@ -186,7 +217,9 @@
                 })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                        return response.json().then(data => {
+                            throw new Error(data.message || 'Network response was not ok');
+                        });
                     }
                     return response.json();
                 })
