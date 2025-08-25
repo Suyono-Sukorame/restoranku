@@ -7,6 +7,14 @@
         <meta content="width=device-width, initial-scale=1.0" name="viewport">
         <meta content="" name="keywords">
         <meta content="" name="description">
+        
+        <!-- PWA Meta Tags -->
+        <meta name="theme-color" content="#007bff">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="default">
+        <meta name="apple-mobile-web-app-title" content="RestoranKu">
+        <link rel="manifest" href="/manifest.json">
+        <link rel="apple-touch-icon" href="/img/icon-192.png">
 
         <!-- Google Web Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,6 +34,8 @@
 
         <!-- Template Stylesheet -->
         <link href="{{ asset('assets/customer/css/style.css') }}" rel="stylesheet">
+        
+        @include('customer.layouts.__touch_friendly')
     </head>
 
     </body>
